@@ -91,15 +91,15 @@ void Sh3Encryptor::localIntMatrix(CommPkg & comm, const i64Matrix & m,
 
 Sh3Task Sh3Encryptor::localIntMatrix(Sh3Task dep, const i64Matrix & m,
                                       si64Matrix & ret) {
-  
+
   return dep.then([this, &m, &ret](CommPkgBase* commPtr, Sh3Task& self) {
-    
+
     if (ret.cols() != static_cast<u64>(m.cols()) ||
         ret.size() != static_cast<u64>(m.size()))
         throw std::runtime_error(LOCATION);
     for (i64 i = 0; i < ret.mShares[0].size(); ++i)
         ret.mShares[0](i) = mShareGen.getShare() + m(i);
-    
+
     CommPkg& comm_cast = dynamic_cast< CommPkg&>(*commPtr);
     comm_cast.mNext().asyncSendCopy(ret.mShares[0].data(), ret.mShares[0].size());
     auto fu = comm_cast.mPrev().asyncRecv(ret.mShares[1].data(),
@@ -153,7 +153,7 @@ Sh3Task Sh3Encryptor::localBinMatrix(Sh3Task dep, const i64Matrix & m,
   return dep.then([this, &m, &ret](CommPkgBase* commPtr, Sh3Task self) {
     auto b0 = ret.i64Cols() != static_cast<u64>(m.cols());
     auto b1 = ret.i64Size() != static_cast<u64>(m.size());
-    
+
     if (b0 || b1)
         throw std::runtime_error(LOCATION);
 
@@ -280,6 +280,7 @@ Sh3Task Sh3Encryptor::remotePackedBinary(Sh3Task dep, sPackedBin & dest) {
 
 i64 Sh3Encryptor::reveal(CommPkg & comm, const si64 & x) {
   i64 s;
+  LOG(ERROR) << "Sh3Encryptor::reveal";
   comm.mNext().recv(s);
   return s + x[0] + x[1];
 }
@@ -298,6 +299,7 @@ void Sh3Encryptor::reveal(CommPkg & comm, u64 partyIdx, const si64 & x) {
 Sh3Task Sh3Encryptor::reveal(Sh3Task  dep, const si64 & x, i64 & dest) {
   return dep.then([&x, &dest](CommPkgBase* comm, Sh3Task& self) {
     auto comm_cast = dynamic_cast<CommPkg&>(*comm);
+    LOG(ERROR) << "Sh3Encryptor::reveal";
     comm_cast.mNext().recv(dest);
     dest += x[0] + x[1];
   });
@@ -316,13 +318,14 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, u64 partyIdx, const si64& x) {
       auto comm_cast = dynamic_cast<CommPkg&>(*comm);
       comm_cast.mPrev().asyncSendCopy(x[0]);
     }
-    
+
   });
 }
 
 Sh3Task Sh3Encryptor::reveal(Sh3Task dep, const sb64& x, i64& dest) {
   return dep.then([&x, &dest](CommPkgBase* commPtr, Sh3Task& self) {
     auto comm_cast = dynamic_cast<CommPkg&>(*commPtr);
+    LOG(ERROR) << "Sh3Encryptor::reveal";
     comm_cast.mNext().recv(dest);
     dest ^= x[0] ^ x[1];
   });
@@ -349,6 +352,7 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, const si64Matrix& x,
   return dep.then([&x, &dest](CommPkgBase* comm, Sh3Task& self) {
     dest.resize(x.rows(), x.cols());
     auto comm_cast = dynamic_cast<CommPkg&>(*comm);
+    LOG(ERROR) << "Sh3Encryptor::reveal";
     comm_cast.mNext().recv(dest.data(), dest.size());
     dest += x.mShares[0];
     dest += x.mShares[1];
@@ -369,7 +373,7 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, u64 partyIdx, const si64Matrix& x) {
       auto comm_cast = dynamic_cast<CommPkg&>(*comm);
       comm_cast.mPrev().asyncSendCopy(x.mShares[0].data(), x.mShares[0].size());
     }
-      
+
   });
 }
 
@@ -377,6 +381,7 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, const sbMatrix& x,
                               i64Matrix& dest) {
   return dep.then([&x, &dest](CommPkgBase* comm, Sh3Task& self) {
     auto comm_cast = dynamic_cast<CommPkg&>(*comm);
+    LOG(ERROR) << "Sh3Encryptor::reveal";
     comm_cast.mNext().recv(dest.data(), dest.size());
     for (i32 i = 0; i < dest.size(); ++i) {
         dest(i) ^= x.mShares[0](i);
@@ -399,12 +404,13 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, u64 partyIdx, const sbMatrix& x) {
       auto comm_cast = dynamic_cast<CommPkg&>(*comm);
       comm_cast.mPrev().asyncSendCopy(x.mShares[0].data(), x.mShares[0].size());
     }
-      
+
   });
 }
 
 i64 Sh3Encryptor::reveal(CommPkg & comm, const sb64 & x) {
   i64 s;
+  LOG(ERROR) << "Sh3Encryptor::reveal";
   comm.mNext().recv(s);
   return s ^ x[0] ^ x[1];
 }
@@ -424,7 +430,7 @@ void Sh3Encryptor::reveal(CommPkg & comm, const si64Matrix & x,
   if (dest.rows() != static_cast<i64>(x.rows()) ||
       dest.cols() != static_cast<i64>(x.cols()))
       throw std::runtime_error(LOCATION);
-
+  LOG(ERROR) << "Sh3Encryptor::reveal";
   comm.mNext().recv(dest.data(), dest.size());
   for (i64 i = 0; i < dest.size(); ++i) {
     dest(i) += x.mShares[0](i) + x.mShares[1](i);
@@ -448,7 +454,7 @@ void Sh3Encryptor::reveal(CommPkg & comm, const sbMatrix & x,
   if (dest.rows() != static_cast<i64>(x.rows()) ||
       dest.cols() != static_cast<i64>(x.i64Cols()))
       throw std::runtime_error(LOCATION);
-
+  LOG(ERROR) << "Sh3Encryptor::reveal";
   comm.mNext().recv(dest.data(), dest.size());
   for (i64 i = 0; i < dest.size(); ++i) {
     dest(i) ^= x.mShares[0](i) ^ x.mShares[1](i);
@@ -473,6 +479,7 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, const sPackedBin& A, i64Matrix& r) {
     buff.resize(A.bitCount(), A.simdWidth());
     r.resize(A.mShareCount, wordWidth);
     auto comm_cast = dynamic_cast<CommPkg&>(*comm);
+    LOG(ERROR) << "Sh3Encryptor::reveal";
     comm_cast.mNext().recv(buff.data(), buff.size());
 
     for (i64 i = 0; i < buff.size(); ++i) {
@@ -495,7 +502,7 @@ Sh3Task Sh3Encryptor::revealAll(Sh3Task dep, const sPackedBin& A,
 }
 
 Sh3Task Sh3Encryptor::reveal(Sh3Task dep, u64 partyIdx, const sPackedBin& A) {
-  // TODO("decide if we can move the if outside the call to then(...)"); 
+  // TODO("decide if we can move the if outside the call to then(...)");
   bool send = (mPartyIdx + 2) % 3 == partyIdx;
   return dep.then([send, &A](CommPkgBase* comm, Sh3Task& self) {
     if (send) {
@@ -511,7 +518,7 @@ void Sh3Encryptor::reveal(CommPkg & comm, const sPackedBin & A,
   i64Matrix buff;
   buff.resize(A.bitCount(), A.simdWidth());
   r.resize(A.mShareCount, wordWidth);
-
+  LOG(ERROR) << "Sh3Encryptor::reveal";
   comm.mNext().recv(buff.data(), buff.size());
 
   for (i64 i = 0; i < buff.size(); ++i) {
@@ -536,6 +543,7 @@ Sh3Task Sh3Encryptor::reveal(Sh3Task dep, const sPackedBin & A,
   return dep.then([&A, &r](CommPkgBase* comm, Sh3Task&  self) {
     r.resize(A.mShareCount, A.bitCount());
     auto comm_cast = dynamic_cast<CommPkg&>(*comm);
+    LOG(ERROR) << "Sh3Encryptor::reveal";
     comm_cast.mNext().recv(r.mData.data(), r.mData.size());
 
     for (u64 i = 0; i < r.size(); ++i) {
