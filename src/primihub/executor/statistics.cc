@@ -164,13 +164,20 @@ retcode MPCSumOrAvg::run(std::shared_ptr<primihub::Dataset> &dataset,
     }
   } else {
     // Get sum value.
+    VLOG(5) << "begin to get sum value";
     eMatrix<double> plaintext_sum(sh_all_sum.rows(), sh_all_sum.rows());
-    for (uint16_t i = 0; i < 3; i++)
-      if (i == party_id_)
+    for (uint16_t i = 0; i < 3; i++) {
+      if (i == party_id_) {
+        VLOG(5) << "begin to get sum value reveal local";
         plaintext_sum = mpc_op_->reveal(sh_all_sum);
-      else
+        VLOG(5) << "end of get sum value reveal local";
+      } else {
+        VLOG(5) << "begin to get sum value reveal to party id: " << i;
         mpc_op_->reveal(sh_all_sum, i);
-
+        VLOG(5) << "end of get sum value reveal to party id: " << i;
+      }
+    }
+    VLOG(5) << "end of loop for reveal";
     result.resize(sh_all_sum.rows(), sh_all_sum.cols());
     for (int i = 0; i < plaintext_sum.rows(); i++)
       result(i, 0) = plaintext_sum(i, 0);

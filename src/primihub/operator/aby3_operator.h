@@ -168,8 +168,10 @@ class MPCOperator {
   }
 
   template <Decimal D> eMatrix<double> reveal(const sf64Matrix<D> &vals) {
+    VLOG(5) << "eMatrix<double> reveal, party id: " << partyIdx;
     f64Matrix<D> temp(vals.rows(), vals.cols());
     enc.reveal(runtime, vals, temp).get();
+    VLOG(5) << "end of eMatrix<double> reveal, party id: " << partyIdx;
     eMatrix<double> ret(vals.rows(), vals.cols());
     for (u64 i = 0; i < ret.size(); ++i)
       ret(i) = static_cast<double>(temp(i));
@@ -177,7 +179,9 @@ class MPCOperator {
   }
 
   template <Decimal D> void reveal(const sf64Matrix<D> &vals, u64 Idx) {
+    VLOG(5) << "reveal for party id: " << Idx;
     enc.reveal(runtime, Idx, vals).get();
+    VLOG(5) << "end of reveal for party id: " << Idx;
   }
 
   i64Matrix reveal(const si64Matrix &vals);
@@ -197,6 +201,7 @@ class MPCOperator {
   }
 
   template <Decimal D> void reveal(const sf64<D> &vals, u64 Idx) {
+    VLOG(5) << "reveal for party id: " << Idx;
     enc.reveal(runtime, Idx, vals).get();
   }
 
