@@ -93,8 +93,8 @@ public:
                        MpcChannel &prev) override;
 
 private:
-  bool use_mpc_div_;
-  bool avg_result_;
+  bool use_mpc_div_{false};
+  bool avg_result_{false};
   eMatrix<double> result;
   std::unique_ptr<MPCOperator> mpc_op_;
   uint16_t party_id_;
